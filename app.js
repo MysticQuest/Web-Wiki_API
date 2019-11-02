@@ -19,7 +19,7 @@ app.use(express.static("public"));
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}
+};
 
 mongoose.connect("mongodb://localhost:27017/WikiDB", options);
 
@@ -40,7 +40,7 @@ const Article = mongoose.model("Article", articleSchema);
 
 //------------------------------------ROUTING-----------------------------
 
-//chaining routes
+//chaining routes for articles
 
 app.route("/articles")
   .get(function(req, res) {
@@ -59,7 +59,7 @@ app.route("/articles")
     });
     newArticle.save(function(err) {
       if (!err) {
-        res.send("Added new article!")
+        res.send("Added new article!");
       } else {
         res.send(err);
       }
@@ -68,13 +68,66 @@ app.route("/articles")
   .delete(function(req, res) {
     Article.deleteMany({}, function(err) {
       if (!err) {
-        res.send("Deleted!")
+        res.send("Deleted!");
       } else {
         res.send(err);
       }
     });
   });
 
+//chaining routes for specific articles
+
+app.route("/articles/:articleTitle")
+
+  .get(function(req, res) {
+    Article.findOne({
+      title: req.params.articleTitle
+    }, function(err, foundArticle) {
+      if (foundArticle) {
+        res.send(foundArticle);
+      } else {
+        res.send("No articles matching that title were found");
+      }
+    });
+  })
+  .put(function(req, res) {
+    Article.update({
+      title: req.params.articleTitle
+    }, {
+      title: req.body.title,
+      content: req.body.content
+    }, {
+      overwrite: true
+    }, function(err) {
+      if (!err) {
+        res.send("Updated article!");
+      }
+    });
+  })
+  .patch(function(req, res) {
+    Article.update({
+      title: req.params.articleTitle
+    }, {
+      $set: req.body
+    }, function(err) {
+      if (!err) {
+        res.send("Updated article!");
+      } else {
+        res.send(err);
+      }
+    });
+  })
+  .delete(function(req, res) {
+    Article.deleteOne({
+      title: req.params.articleTitle
+    }, function(err) {
+      if (!err) {
+        res.send("Deleted article...");
+      } else {
+        res.send(err);
+      }
+    });
+  });
 
 
 
